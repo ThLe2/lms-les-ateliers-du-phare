@@ -1,0 +1,32 @@
+{
+ "_lisez_moi": "Clé de la base -> paramètre OpenFisca France. facteur : multiplie la valeur OpenFisca pour l'exprimer dans l'unité de la base (ex. 100 quand la base stocke 9,2 pour 9,2 %). date : 'jour' = valeur en vigueur à la date du contrôle ; 'janvier' = valeur au 1er janvier de l'année. Ajouter une ligne ici suffit à étendre le contrôle.",
+ "historiques": [
+  {"table": "smic_horaire_historique", "colonne_date": "date_effet", "colonne_valeur": "montant", "libelle": "SMIC horaire brut (historique)",
+   "of": "marche_travail/salaire_minimum/smic/smic_b_horaire.yaml"},
+  {"table": "pass_annuel", "colonne_annee": "annee", "colonne_valeur": "montant_eur", "libelle": "PASS annuel (historique)",
+   "of": "prelevements_sociaux/pss/plafond_securite_sociale_annuel.yaml"}
+ ],
+ "valeurs": [
+  {"cle": "smic_horaire", "of": "marche_travail/salaire_minimum/smic/smic_b_horaire.yaml"},
+  {"cle": "smic_mensuel", "of": "marche_travail/salaire_minimum/smic/smic_b_mensuel.yaml"},
+  {"cle": "smic_mensuel_brut", "of": "marche_travail/salaire_minimum/smic/smic_b_mensuel.yaml"},
+  {"cle": "smic_horaire_1er_janvier", "of": "marche_travail/salaire_minimum/smic/smic_b_horaire.yaml", "date": "janvier"},
+  {"cle": "pass", "of": "prelevements_sociaux/pss/plafond_securite_sociale_annuel.yaml"},
+  {"cle": "tns_pass", "of": "prelevements_sociaux/pss/plafond_securite_sociale_annuel.yaml"},
+  {"cle": "pmss", "of": "prelevements_sociaux/pss/plafond_securite_sociale_mensuel.yaml"},
+  {"cle": "av_abattement_annuel_seul", "of": "impot_revenu/calcul_revenus_imposables/rvcm/produits_assurances_vies_assimiles/abattement_celib.yaml"},
+  {"cle": "av_abattement_annuel_couple", "of": "impot_revenu/calcul_revenus_imposables/rvcm/produits_assurances_vies_assimiles/abattement_couple.yaml"},
+  {"cle": "av_seuil_versements", "of": "taxation_capital/prelevement_forfaitaire/partir_2018/seuil_primes_applique_eligibilite_produits_assurance_vie_prelevement_forfaitaire_unique.yaml"},
+  {"cle": "epargne_pfu_taux_ir", "of": "taxation_capital/prelevement_forfaitaire/partir_2018/taux_prelevement_forfaitaire_rev_capital_eligibles_pfu_interets_dividendes_etc.yaml"},
+  {"cle": "av_taux_pfu_ir", "of": "taxation_capital/prelevement_forfaitaire/partir_2018/taux_prelevement_forfaitaire_rev_capital_eligibles_pfu_interets_dividendes_etc.yaml"},
+  {"cle": "av_taux_reduit", "of": "taxation_capital/prelevement_forfaitaire/partir_2018/taux_prelevement_produits_assurance_vie_non_eligibles_prelevement_forfaitaire_unique.yaml"},
+  {"cle": "epargne_csg_taux", "of": "taxation_capital/prelevements_sociaux/csg/taux_global/produits_de_placement.yaml"},
+  {"cle": "epargne_csg_deductible_taux", "of": "taxation_capital/prelevements_sociaux/csg/taux_deductible/produits_de_placement.yaml"},
+  {"cle": "epargne_prelevement_solidarite", "of": "taxation_capital/prelevements_sociaux/prelevements_solidarite/produits_de_placement.yaml"},
+  {"cle": "epargne_crds_taux", "of": "prelevements_sociaux/contributions_sociales/crds.yaml"},
+  {"cle": "arbitrage_taux_livret_a", "of": "taxation_capital/epargne/livret_a/taux.yaml"},
+  {"cle": "arbitrage_taux_lep", "of": "taxation_capital/epargne/livret_epargne_populaire/taux.yaml"},
+  {"cle": "tns_csg_taux", "of": "prelevements_sociaux/contributions_sociales/csg/activite/taux_global.yaml", "facteur": 100},
+  {"cle": "tns_crds_taux", "of": "prelevements_sociaux/contributions_sociales/crds.yaml", "facteur": 100}
+ ]
+}
