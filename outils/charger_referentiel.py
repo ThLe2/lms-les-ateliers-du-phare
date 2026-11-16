@@ -46,8 +46,16 @@ def telecharger(url, dest):
 
 
 def derniers_exports():
-    with urllib.request.urlopen(JEU, timeout=60) as r:
-        jeu = json.load(r)
+    for essai in range(6):   # l'API de data.gouv.fr répond parfois 503 : on réessaie pendant quelques minutes
+        try:
+            with urllib.request.urlopen(urllib.request.Request(JEU, headers={"User-Agent": "accompagna-referentiel/1.0"}), timeout=60) as r:
+                jeu = json.load(r)
+            break
+        except Exception as e:
+            if essai == 5:
+                raise SystemExit(f"API data.gouv.fr indisponible : {e}")
+            print(f"  API data.gouv.fr : {e}, nouvelle tentative", file=sys.stderr)
+            time.sleep(30 * (essai + 1))
     res = {}
     for x in sorted(jeu["resources"], key=lambda x: x.get("last_modified") or "", reverse=True):
         t = x.get("title") or ""
