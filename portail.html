@@ -1042,9 +1042,19 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
     zone.innerHTML =
       '<button type="button" data-avis="1" aria-label="Réponse utile">👍 Utile</button>' +
       '<button type="button" data-avis="-1" aria-label="Réponse pas utile">👎 Pas utile</button>' +
-      '<button type="button" data-transmettre class="' + (sansReponse ? 'fort' : '') + '">' +
+      '<button type="button" data-transmettre hidden class="' + (sansReponse ? 'fort' : '') + '">' +
       (sansReponse ? 'Transmettre la question à mon formateur' : 'Transmettre à mon formateur') + '</button>';
     bloc.appendChild(zone);
+    /* Le bouton n'apparaît que dans une séance accompagnée : ce choix est fait à la mise à disposition. */
+    lms().rpc('seance_accompagnee', { p_session_id: etat.seance.id }).then(function (r) {
+      var t = zone.querySelector('[data-transmettre]');
+      if (t && !r.error && r.data === true) t.hidden = false;
+      else if (t && sansReponse) {
+        var n = document.createElement('span'); n.className = 'fait';
+        n.textContent = 'Cette séance n\'est pas accompagnée : votre question n\'est pas transmise à un formateur.';
+        t.replaceWith(n);
+      }
+    });
     var idEchange = lms().rpc('assistant_dernier_echange', { p_session_id: etat.seance.id })
       .then(function (r) { return r.error ? null : r.data; });
     zone.addEventListener('click', function (ev) {

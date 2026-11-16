@@ -361,6 +361,9 @@ body.ag-ouvert{overflow:hidden}
           <div><label for="f-cloture">Clôture</label><input id="f-cloture" type="time" value="18:30"></div>
           <div style="grid-column:span 2"><label for="f-libelle">Libellé (facultatif)</label>
             <input id="f-libelle" placeholder="Repris du module si vide"></div>
+          <div style="grid-column:span 2"><label class="bascule"><input type="checkbox" id="f-accomp" checked>
+            Séance accompagnée : les stagiaires peuvent transmettre leurs questions au formateur</label>
+            <span class="muted">Décochée, l'assistant du cours reste disponible, mais rien n'est transmis au formateur.</span></div>
         </div>
         <div class="actions">
           <button class="btn" id="btn-creer">Créer la séance</button>
@@ -752,7 +755,7 @@ body.ag-ouvert{overflow:hidden}
   var SYNTHESE = [], MATRICE = [], MATRICE_META = null;
   /* Bornes des couleurs de la matrice, à ajuster si besoin. */
   var SEUIL_BIEN = 15, SEUIL_MOYEN = 12;
-  var FORMATEUR_SEANCE = {}, FORMATEUR_ID_SEANCE = {};
+  var FORMATEUR_SEANCE = {}, FORMATEUR_ID_SEANCE = {}, ACCOMP_SEANCE = {};
   var CIBLES = {};            // { session_id: [stagiaire_id, …] } — vide = tout le groupe
   /* Espace Formateurs : on ne montre que les séances auxquelles la
      personne connectée est affectée (et ce qui en découle). */
@@ -2184,7 +2187,8 @@ body.ag-ouvert{overflow:hidden}
       p_heure_debut: $('#f-debut').value || '08:30',
       p_heure_fin: $('#f-hfin').value || '16:30',
       p_heure_cloture: $('#f-cloture').value || '18:30',
-      p_date_fin: fin
+      p_date_fin: fin,
+      p_accompagnee: $('#f-accomp').checked
     }).then(function (id) {
       return appeler('lms', 'affecter_formateur', {
         p_email: formateur, p_da_code: da, p_groupe_code: groupe
@@ -2211,7 +2215,7 @@ body.ag-ouvert{overflow:hidden}
   function chargerSeances() {
     return Promise.all([
       lire('lms', 'v_seances?select=*&order=date_debut.desc,id.desc'),
-      lire('lms', 'sessions?select=id,formateur_id'),
+      lire('lms', 'sessions?select=id,formateur_id,accompagnee'),
       lire('lms', 'formateurs?select=id,nom,prenom'),
       lire('lms', 'sessions_stagiaires?select=session_id,stagiaire_id').catch(function () { return []; })
     ]).then(function (r) {
@@ -2221,8 +2225,9 @@ body.ag-ouvert{overflow:hidden}
       if (modeFormateur()) SEANCES = calculerMes(SEANCES, r[1]).seances;
       var noms = {};
       (r[2] || []).forEach(function (f) { noms[f.id] = f.nom + ' ' + f.prenom; });
-      FORMATEUR_SEANCE = {}; FORMATEUR_ID_SEANCE = {};
+      FORMATEUR_SEANCE = {}; FORMATEUR_ID_SEANCE = {}; ACCOMP_SEANCE = {};
       (r[1] || []).forEach(function (x) {
+        ACCOMP_SEANCE[x.id] = x.accompagnee !== false;
         if (x.formateur_id) {
           FORMATEUR_SEANCE[x.id] = noms[x.formateur_id] || '(inconnu)';
           FORMATEUR_ID_SEANCE[x.id] = x.formateur_id;
@@ -2354,7 +2359,8 @@ body.ag-ouvert{overflow:hidden}
            '<td>' + echappe(s.groupes || '—') + '</td>' +
            '<td>' + echappe(hhmm(s.heure_debut)) + ' – ' + echappe(hhmm(s.heure_cloture)) + '</td>' +
            '<td>' + (s.inscrits == null ? '—' : s.inscrits) +
-             (CIBLES[s.id] ? '<span class="etiquette">réservée</span>' : '') + '</td>' +
+             (CIBLES[s.id] ? '<span class="etiquette">réservée</span>' : '') +
+             (ACCOMP_SEANCE[s.id] === false ? '<span class="etiquette" title="Les questions ne sont pas transmises au formateur">non accompagnée</span>' : '') + '</td>' +
            '<td data-cellule-formateur="' + s.id + '">' + (FORMATEUR_SEANCE[s.id]
                      ? echappe(FORMATEUR_SEANCE[s.id])
                      : '<span class="etat attention">non affecté</span>') +
@@ -2463,13 +2469,26 @@ body.ag-ouvert{overflow:hidden}
       '<div><label for="m-debut">Ouverture</label><input id="m-debut" type="time" value="' + echappe(hhmm(s.heure_debut) || '08:30') + '"></div>' +
       '<div><label for="m-hfin">Fin</label><input id="m-hfin" type="time" value="' + echappe(hhmm(s.heure_fin) || '16:30') + '"></div>' +
       '<div><label for="m-cloture">Clôture</label><input id="m-cloture" type="time" value="' + echappe(hhmm(s.heure_cloture) || '18:30') + '"></div>' +
-      '</div><div class="actions"><button class="btn" id="btn-modif-ok">Enregistrer</button>' +
+      '</div><div class="actions" style="margin-top:.4rem"><label class="bascule"><input type="checkbox" id="m-accomp"' +
+        (ACCOMP_SEANCE[id] === false ? '' : ' checked') + '> Séance accompagnée : les questions peuvent être transmises au formateur</label>' +
+        '<span class="muted">Enregistré aussitôt, même si la séance a commencé.</span></div>' +
+      '<div id="msg-accomp"></div><div class="actions"><button class="btn" id="btn-modif-ok">Enregistrer</button>' +
       '<button class="btn btn-secondaire" id="btn-modif-non">Fermer</button>' +
       '<span class="muted">Laissez « Fin » vide pour une séance d\'une journée. ' +
       'Impossible une fois qu\'un stagiaire a commencé la séance.</span></div>' +
       '<div id="msg-modif"></div>';
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     $('#btn-modif-non').onclick = function () { zone.innerHTML = ''; };
+    $('#m-accomp').onchange = function () {
+      var c = this, v = c.checked; c.disabled = true;
+      appeler('lms', 'definir_accompagnement', { p_session_id: id, p_accompagnee: v }).then(function () {
+        ACCOMP_SEANCE[id] = v;
+        alerte('#msg-accomp', v ? 'Séance accompagnée : les stagiaires peuvent transmettre leurs questions.' :
+                                  'Séance non accompagnée : les questions ne seront plus transmises au formateur.', 'ok');
+        dessinerSeances();
+      }).catch(function (e) { c.checked = !v; alerte('#msg-accomp', e.message); })
+        .then(function () { c.disabled = false; });
+    };
     $('#btn-modif-ok').onclick = function () {
       var date = $('#m-date').value, fin = $('#m-fin').value || null;
       if (!date) { alerte('#msg-modif', 'La date est attendue.'); return; }
