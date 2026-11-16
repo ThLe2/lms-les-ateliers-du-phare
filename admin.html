@@ -249,6 +249,11 @@ nav{display:none!important}
 .rf-comp li{margin:.15rem 0}.rf-comp label,.rf-titre-bloc{display:flex;gap:.4rem;align-items:flex-start;cursor:pointer;font-weight:400;font-size:.9rem;text-transform:none;letter-spacing:normal;color:inherit}
 .rf-recherche .at-var{margin:0}
 .rf-bloc input,.rf-comp input{width:auto;margin-top:.2rem}
+.rf-detail{margin:.2rem 0 .5rem 1.6rem;font-size:.86rem}
+.rf-detail>summary{cursor:pointer;color:var(--prune);font-weight:600}
+.rf-detail p{margin:.25rem 0}.rf-detail ul{margin:.2rem 0 .4rem 1.1rem;padding:0}.rf-detail li{margin:.1rem 0}
+.rf-st{font-weight:700;color:#5b6575;margin-top:.5rem!important}
+.rf-savoirs>summary{cursor:pointer;font-weight:600;color:#5b6575;margin-top:.4rem}
 /* Mode d'emploi de l'atelier (15/11/2026) */
 .ag-bouton{float:right;display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--prune);color:var(--prune-fonce);background:#fff;border-radius:999px;padding:.3rem .8rem;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
 .ag-bouton span{display:inline-grid;place-items:center;width:1.2rem;height:1.2rem;border-radius:50%;background:var(--prune);color:#fff;font-size:.75rem}
@@ -2118,6 +2123,21 @@ body.ag-ouvert{overflow:hidden}
       .filter(function (l) { return l.length > 2; });
   }
   function rfPeut() { return atA('auteur') || atA('pedagogique') || atA('direction'); }
+  function rfNorm(t) { return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/’/g, "'").toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+  // Détail REAC d'une compétence (même rapprochement que l'extracteur : intitulé identique ou contenu l'un dans l'autre).
+  function rfDetail(f, intitule) {
+    var n = rfNorm(intitule);
+    return (f.competences || []).filter(function (c) { var m = rfNorm(c.intitule); return m === n || (n.length > 15 && (m.indexOf(n) >= 0 || n.indexOf(m) >= 0)); })[0] || null;
+  }
+  function rfDetailHtml(d) {
+    function liste(t, v) { return v && v.length ? '<p class="rf-st">' + t + '</p><ul>' + v.map(function (x) { return '<li>' + echappe(x) + '</li>'; }).join('') + '</ul>' : ''; }
+    return '<details class="rf-detail"><summary>Ce qui est attendu (REAC)</summary>' +
+      (d.description ? '<p class="rf-st">Description</p><p>' + echappe(d.description) + '</p>' : '') +
+      (d.contexte ? '<p class="rf-st">Contexte de mise en œuvre</p><p>' + echappe(d.contexte) + '</p>' : '') +
+      liste('Critères de performance', d.criteres) +
+      (d.savoirs && d.savoirs.length ? '<details class="rf-savoirs"><summary>Savoir-faire et savoirs (' + d.savoirs.length + ')</summary><ul>' +
+        d.savoirs.map(function (x) { return '<li>' + echappe(x) + '</li>'; }).join('') + '</ul></details>' : '') + '</details>';
+  }
 
   function atReferentielsVue() {
     $('#at-contenu').innerHTML = '<h2>Référentiels RNCP et RS</h2><p class="sub">Les fiches des certifications enregistrées par France compétences, ' +
@@ -2215,7 +2235,12 @@ body.ag-ouvert{overflow:hidden}
       '<tr><th>Formacode</th><td>' + liste(f.formacodes) + '</td><th>NSF</th><td>' + liste(f.nsf) + '</td></tr>' +
       '<tr><th>Source</th><td colspan="3"><a href="' + echappe(f.lien) + '" target="_blank" rel="noopener">Fiche sur le site de France compétences</a>' +
         ' · <span class="muted">export du ' + rfDate(f.export_du) + '</span></td></tr>' +
-      '<tr><th>Référentiel détaillé</th><td colspan="3" id="rf-docs"><span class="muted">Recherche des documents officiels…</span></td></tr></tbody></table>' +
+      '<tr><th>Référentiel détaillé</th><td colspan="3"><span id="rf-docs"><span class="muted">Recherche des documents officiels…</span></span>' +
+        (f.document && f.document.statut === 'extrait' ? '<br><span class="muted">Détail des ' + f.document.nb_competences + ' compétences lu dans le REAC' +
+          (f.document.millesime ? ' (millésime ' + echappe(f.document.millesime) + (f.document.date_validation ? ', validé le ' + echappe(f.document.date_validation) : '') + ')' : '') + '.</span>'
+         : f.document && f.document.statut === 'format non reconnu' ? '<br><span class="muted">Ce référentiel ne suit pas la trame du REAC : le détail se lit dans le PDF.</span>'
+         : '<br><span class="muted">Détail des compétences non encore lu pour cette fiche (lecture chaque lundi pour les titres professionnels et les fiches sélectionnées).</span>') +
+      '</td></tr></tbody></table>' +
       '<p class="muted" style="font-size:.85rem">Le détail attendu pour chaque compétence (description, contexte, critères de performance, savoir-faire et savoirs) ' +
         'figure dans le référentiel détaillé officiel joint à la fiche — pour un titre professionnel, le REAC et le référentiel de certification.</p>' +
       section('Activités visées', f.activites_visees) + section('Capacités attestées', f.repertoire === 'RNCP' ? f.capacites_attestees : null) +
@@ -2228,7 +2253,9 @@ body.ag-ouvert{overflow:hidden}
           var pris = deja[b.code || '_'];
           return '<div class="rf-bloc"><label class="rf-titre-bloc"><input type="checkbox" data-bloc="' + i + '"> <b>' + (b.code ? echappe(b.code) + ' — ' : '') + echappe(b.libelle) + '</b></label>' +
             '<ul class="rf-comp">' + b.comp.map(function (c, j) {
-              return '<li><label><input type="checkbox" data-b="' + i + '" data-c="' + j + '"' + (pris && pris.indexOf(c) >= 0 ? ' checked' : '') + '> ' + echappe(c) + '</label></li>';
+              var d = rfDetail(f, c);
+              return '<li><label><input type="checkbox" data-b="' + i + '" data-c="' + j + '"' + (pris && pris.indexOf(c) >= 0 ? ' checked' : '') + '> ' + echappe(c) + '</label>' +
+                (d ? rfDetailHtml(d) : '') + '</li>';
             }).join('') + '</ul>' + (b.modalites ? '<details class="rf-section"><summary>Modalités d’évaluation</summary><div>' + rfTexte(b.modalites) + '</div></details>' : '') + '</div>';
         }).join('') : '<p class="muted">Cette fiche ne détaille pas de compétences.</p>') +
       (blocs.length ? '<div class="at-formule" style="margin-top:1rem"><b>' + (sel ? 'Modifier la sélection' : 'Enregistrer la sélection') + '</b>' +
@@ -2251,7 +2278,9 @@ body.ag-ouvert{overflow:hidden}
     function choisis() {
       return blocs.map(function (b, i) {
         var comp = b.comp.filter(function (c, j) { var x = zone.querySelector('[data-b="' + i + '"][data-c="' + j + '"]'); return x && x.checked; });
-        return comp.length ? { code: b.code, libelle: b.libelle, competences: comp } : null;
+        if (!comp.length) return null;
+        var det = comp.map(function (c) { var d = rfDetail(f, c); return d ? { intitule: c, description: d.description, contexte: d.contexte, criteres: d.criteres, savoirs: d.savoirs } : null; }).filter(Boolean);
+        return det.length ? { code: b.code, libelle: b.libelle, competences: comp, details: det } : { code: b.code, libelle: b.libelle, competences: comp };
       }).filter(Boolean);
     }
     function maj() {
@@ -2295,10 +2324,11 @@ body.ag-ouvert{overflow:hidden}
       $('#rf-corps').innerHTML = !r.length ? '<p class="muted">Aucune sélection enregistrée. Ouvrez une fiche dans « Rechercher » et cochez ses compétences.</p>' :
         '<table class="at-table"><thead><tr><th>Sélection</th><th>Fiche</th><th>Contenu</th><th>Modifiée</th><th></th></tr></thead><tbody>' + r.map(function (s) {
           var nb = (s.blocs || []).reduce(function (t, b) { return t + (b.competences || []).length; }, 0);
+          var nd = (s.blocs || []).reduce(function (t, b) { return t + (b.details || []).length; }, 0);
           return '<tr><td><b>' + echappe(s.titre) + '</b>' + (s.note ? '<br><span class="muted">' + echappe(s.note) + '</span>' : '') + '</td>' +
             '<td>' + echappe(s.numero) + '<br><span class="muted">' + echappe(s.intitule) + '</span>' +
             (s.actif ? '' : '<br><span class="at-ctl ko">Fiche devenue inactive</span>' + (s.remplacee_par && s.remplacee_par.length ? ' — remplacée par ' + s.remplacee_par.map(echappe).join(', ') : '')) + '</td>' +
-            '<td>' + (s.blocs || []).length + ' bloc(s), ' + nb + ' compétence(s)</td>' +
+            '<td>' + (s.blocs || []).length + ' bloc(s), ' + nb + ' compétence(s)' + (nd ? '<br><span class="muted">détail REAC joint (' + nd + ')</span>' : '') + '</td>' +
             '<td class="muted">' + new Date(s.modifie_le).toLocaleDateString('fr-FR') + (s.auteur ? ' · ' + echappe(s.auteur) : '') + '</td>' +
             '<td style="white-space:nowrap"><button class="ag-lien" data-ouvrir="' + s.id + '">Ouvrir</button> <button class="ag-lien" data-suppr="' + s.id + '">Supprimer</button></td></tr>';
         }).join('') + '</tbody></table>';

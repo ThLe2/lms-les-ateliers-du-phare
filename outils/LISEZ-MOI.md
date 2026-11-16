@@ -42,3 +42,15 @@ Il a besoin du secret GitHub `SUPABASE_SERVICE_ROLE_KEY`, créé par le responsa
 
     python3 outils/charger_referentiel.py --essai                 # lecture seule : télécharge et compte
     SUPABASE_SERVICE_ROLE_KEY=… python3 outils/charger_referentiel.py --url <URL Supabase>
+
+## Détail des compétences (REAC)
+
+`extraire_reac.py` lit, pour chaque titre professionnel actif du ministère du Travail et pour chaque fiche retenue
+dans une sélection, le « Référentiel d'activité, de compétences et d'évaluation » joint à la fiche sur le site de
+France compétences (REAC + référentiel de certification). Il découpe chaque fiche compétence professionnelle :
+description, contexte, critères de performance, savoir-faire et savoirs, et la rattache au bloc RNCP par l'intitulé.
+Un document relu n'est retraité que s'il a changé. Il écrit uniquement dans `referentiel_documents` et
+`referentiel_competences`. Il tourne dans la même action GitHub que le chargement (étape « Détail des compétences »),
+qu'on peut aussi lancer seule pour une fiche (Run workflow > detail-competences, numéro).
+
+    python3 outils/extraire_reac.py --essai --pdf REAC.pdf        # lecture seule : découpe un PDF local
