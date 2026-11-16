@@ -89,12 +89,13 @@ def decouper(texte):
     m = re.search(r"Millésime\n(\d+)\n\s*\nDate de Validation\n(\d{2}/\d{2}/\d{4})", texte)
     if m:
         entete = {"millesime": m.group(1), "date_validation": m.group(2)}
-    fin = re.search(r"(?m)^FICHE DES COMPÉTENCES TRANSVERSALES|^Glossaire du REAC|^Glossaire technique|^REFERENTIEL DE CERTIFICATION", t[t.find("FICHE COMPÉTENCE PROFESSIONNELLE"):] if "FICHE COMPÉTENCE PROFESSIONNELLE" in t else "")
-    debut = t.find("FICHE COMPÉTENCE PROFESSIONNELLE")
-    if debut < 0:
+    m0 = re.search(r"(?m)^FICHE COMP[ÉE]TENCE PROFESSIONNELLE N°", t)
+    if not m0:
         return entete, []
+    debut = m0.start()
+    fin = re.search(r"(?m)^FICHE DES COMP[ÉE]TENCES TRANSVERSALES|^Glossaire du REAC|^Glossaire technique|^R[ÉE]F[ÉE]RENTIEL DE CERTIFICATION", t[debut:])
     zone = t[debut: debut + fin.start()] if fin else t[debut:]
-    morceaux = re.split(r"(?m)^FICHE COMPÉTENCE PROFESSIONNELLE N°\s*(\d+)\s*$", zone)
+    morceaux = re.split(r"(?m)^FICHE COMP[ÉE]TENCE PROFESSIONNELLE N°\s*(\d+)\s*$", zone)
     comps = []
     for i in range(1, len(morceaux), 2):
         ordre, corps = int(morceaux[i]), morceaux[i + 1]
@@ -104,18 +105,18 @@ def decouper(texte):
         while j < len(lignes) and not lignes[j].strip():
             j += 1
         titre = []
-        while j < len(lignes) and not lignes[j].startswith("Description de la compétence"):
+        while j < len(lignes) and not re.match(r"Description de la comp[ée]tence", lignes[j]):
             if lignes[j].strip():
                 titre.append(lignes[j].strip())
             j += 1
         sections, cle = {"description": [], "contexte": [], "criteres": [], "savoirs": []}, None
         for l in lignes[j:]:
             s = l.strip()
-            if s.startswith("Description de la compétence"):
+            if re.match(r"Description de la comp[ée]tence", s):
                 cle = "description"; continue
             if s.startswith("Contexte(s) professionnel(s)") or s.startswith("Contexte professionnel"):
                 cle = "contexte"; continue
-            if s.startswith("Critères de performance"):
+            if re.match(r"Crit[èe]res de performance", s):
                 cle = "criteres"; continue
             if s.startswith("Savoir-faire techniques") or s.startswith("Savoirs, savoir-faire"):
                 cle = "savoirs"; continue

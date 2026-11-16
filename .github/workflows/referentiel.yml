@@ -17,6 +17,10 @@ on:
         description: "Détail des compétences : une seule fiche (ex. RNCP42431), vide = toutes"
         required: false
         default: ""
+      forcer:
+        description: "Relire tous les documents, même inchangés"
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -41,4 +45,5 @@ jobs:
         run: |
           URL=$(grep -oP '"SUPABASE_URL":\s*"\K[^"]+' config.js)
           if [ -n "${{ inputs.numero }}" ]; then python3 outils/extraire_reac.py --url "$URL" --numero "${{ inputs.numero }}" --forcer
+          elif [ "${{ inputs.forcer }}" = "true" ]; then python3 outils/extraire_reac.py --url "$URL" --forcer
           else python3 outils/extraire_reac.py --url "$URL"; fi
