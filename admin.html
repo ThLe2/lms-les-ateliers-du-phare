@@ -2214,7 +2214,10 @@ body.ag-ouvert{overflow:hidden}
       '<tr><th>Voies d’accès</th><td>' + (f.voies_acces && f.voies_acces.length ? f.voies_acces.map(echappe).join(', ') : '—') + '</td><th>Codes ROME</th><td>' + liste(f.rome) + '</td></tr>' +
       '<tr><th>Formacode</th><td>' + liste(f.formacodes) + '</td><th>NSF</th><td>' + liste(f.nsf) + '</td></tr>' +
       '<tr><th>Source</th><td colspan="3"><a href="' + echappe(f.lien) + '" target="_blank" rel="noopener">Fiche sur le site de France compétences</a>' +
-        ' · <span class="muted">export du ' + rfDate(f.export_du) + '</span></td></tr></tbody></table>' +
+        ' · <span class="muted">export du ' + rfDate(f.export_du) + '</span></td></tr>' +
+      '<tr><th>Référentiel détaillé</th><td colspan="3" id="rf-docs"><span class="muted">Recherche des documents officiels…</span></td></tr></tbody></table>' +
+      '<p class="muted" style="font-size:.85rem">Le détail attendu pour chaque compétence (description, contexte, critères de performance, savoir-faire et savoirs) ' +
+        'figure dans le référentiel détaillé officiel joint à la fiche — pour un titre professionnel, le REAC et le référentiel de certification.</p>' +
       section('Activités visées', f.activites_visees) + section('Capacités attestées', f.repertoire === 'RNCP' ? f.capacites_attestees : null) +
       section('Objectifs et contexte', f.objectifs_contexte) + section('Prérequis d’entrée en formation', f.prerequis_entree) +
       section('Prérequis de validation', f.prerequis_validation) + section('Types d’emplois accessibles', f.types_emploi) +
@@ -2234,6 +2237,14 @@ body.ag-ouvert{overflow:hidden}
         '<p class="muted" id="rf-compte" style="font-size:.85rem"></p>' +
         '<div class="at-boutons"><button class="btn" id="rf-enreg">Enregistrer</button><button class="btn btn-secondaire" id="rf-copier">Copier en texte</button></div></div>' : '');
     $('#rf-retour').addEventListener('click', function () { RF.fiche = null; RF.selection = null; if (sel) RF.onglet = 'selections'; rfAfficher(); });
+    fetch(URL_PROJET + '/functions/v1/referentiel-documents?numero=' + encodeURIComponent(f.numero), { headers: entetes(null, false) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var z = $('#rf-docs'); if (!z) return;
+        z.innerHTML = d && d.ok && d.documents && d.documents.length ? d.documents.map(function (x) {
+          return '<a href="' + echappe(x.url) + '" target="_blank" rel="noopener">' + echappe(x.titre) + ' (PDF)</a>'; }).join('<br>')
+          : '<span class="muted">Aucun document joint trouvé sur la fiche officielle' + (d && d.erreur ? ' (' + echappe(d.erreur) + ')' : '') + '.</span>';
+      }).catch(function () { var z = $('#rf-docs'); if (z) z.innerHTML = '<span class="muted">Documents officiels indisponibles pour le moment.</span>'; });
     Array.prototype.forEach.call($('#rf-corps').querySelectorAll('[data-ouvrir]'), function (b) { b.addEventListener('click', function () { rfOuvrir(b.dataset.ouvrir, null); }); });
     if (!blocs.length) return;
     var zone = $('#rf-corps');
