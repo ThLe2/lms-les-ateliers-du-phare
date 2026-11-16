@@ -23,3 +23,22 @@ un écart se tranche toujours sur le texte officiel (Légifrance).
 - **ÉCRITURE ABSENTE** : la valeur attendue (« 152 500 », « 7,5 % »…) ne figure plus dans le texte.
 
     python3 outils/verifier_articles.py --url <URL Supabase> --cle <clé publique anon>
+
+# Référentiels RNCP et RS (France compétences)
+
+`charger_referentiel.py` charge dans la base du centre les fiches des répertoires RNCP et RS
+publiées chaque nuit par France compétences sur data.gouv.fr (fichiers XML v4.1, Licence Ouverte) :
+intitulé, niveau, certificateur, dates, activités visées, capacités attestées, prérequis, voies d'accès,
+codes ROME, NSF et Formacode, et pour le RNCP les blocs de compétences (liste des compétences,
+modalités d'évaluation). Les fiches inactives ne gardent que leur identité et la ou les fiches qui les remplacent.
+
+Il n'écrit que dans `referentiel_fiches`, `referentiel_blocs` et `referentiel_chargements`.
+La lecture se fait par `lms.referentiel_chercher`, `lms.referentiel_fiche` et `lms.referentiel_etat`
+(équipe pédagogique uniquement).
+
+Le chargement tourne chaque lundi à 5 h 17 (UTC) par l'action GitHub `.github/workflows/referentiel.yml`,
+et peut être lancé à la main (onglet Actions > « Référentiels RNCP et RS » > Run workflow).
+Il a besoin du secret GitHub `SUPABASE_SERVICE_ROLE_KEY`, créé par le responsable du centre.
+
+    python3 outils/charger_referentiel.py --essai                 # lecture seule : télécharge et compte
+    SUPABASE_SERVICE_ROLE_KEY=… python3 outils/charger_referentiel.py --url <URL Supabase>

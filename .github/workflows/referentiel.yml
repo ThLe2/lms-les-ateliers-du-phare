@@ -1,0 +1,25 @@
+# Chargement hebdomadaire des référentiels RNCP et RS (France compétences, data.gouv.fr)
+# dans la base du centre. Écrit uniquement dans referentiel_fiches, referentiel_blocs et referentiel_chargements.
+# Secret à créer par le responsable du centre : SUPABASE_SERVICE_ROLE_KEY (Settings > Secrets and variables > Actions).
+name: Référentiels RNCP et RS
+on:
+  schedule:
+    - cron: "17 5 * * 1"      # lundi 05:17 UTC, avant la veille du lundi
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  charger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Charger les référentiels
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          URL=$(grep -oP '"SUPABASE_URL":\s*"\K[^"]+' config.js)
+          python3 outils/charger_referentiel.py --url "$URL"
