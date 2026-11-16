@@ -233,6 +233,22 @@ nav{display:none!important}
 .at-var-ligne{margin:.25rem 0}
 .at-grille .at-var,.at-var{display:inline-flex;align-items:center;gap:.25rem;margin:0 .6rem .2rem 0;font-weight:400;font-size:.85rem;white-space:nowrap;text-transform:none;letter-spacing:normal;color:inherit}
 .at-var input{width:auto;margin:0}
+.rf-onglets{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;margin:.6rem 0 .8rem}
+.rf-onglet{border:1px solid var(--trame);background:#fff;border-radius:999px;padding:.35rem .9rem;cursor:pointer;font:inherit}
+.rf-onglet.actif{background:var(--prune);color:#fff;border-color:transparent}
+#rf-etat{margin-left:auto;font-size:.85rem}
+.rf-recherche{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem}
+.rf-recherche #rf-texte{flex:1 1 22rem;width:auto}.rf-recherche select{width:auto;flex:0 0 auto}
+.rf-carte th{width:9rem;background:#F6F8FC!important;color:#5b6575!important;font-weight:600;text-transform:none;letter-spacing:normal;font-size:.82rem}
+.rf-section{border:1px solid var(--trame);border-radius:8px;padding:.4rem .7rem;margin:.4rem 0;background:#FCFDFE}
+.rf-section summary{cursor:pointer;font-weight:600}
+.rf-section>div{margin-top:.4rem;font-size:.9rem;line-height:1.45}
+.rf-bloc{border:1px solid var(--trame);border-radius:8px;padding:.6rem .8rem;margin:.5rem 0}
+.rf-titre-bloc{display:flex;gap:.4rem;align-items:flex-start;cursor:pointer}
+.rf-comp{list-style:none;margin:.4rem 0 .2rem 1.4rem;padding:0}
+.rf-comp li{margin:.15rem 0}.rf-comp label,.rf-titre-bloc{display:flex;gap:.4rem;align-items:flex-start;cursor:pointer;font-weight:400;font-size:.9rem;text-transform:none;letter-spacing:normal;color:inherit}
+.rf-recherche .at-var{margin:0}
+.rf-bloc input,.rf-comp input{width:auto;margin-top:.2rem}
 /* Mode d'emploi de l'atelier (15/11/2026) */
 .ag-bouton{float:right;display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--prune);color:var(--prune-fonce);background:#fff;border-radius:999px;padding:.3rem .8rem;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
 .ag-bouton span{display:inline-grid;place-items:center;width:1.2rem;height:1.2rem;border-radius:50%;background:var(--prune);color:#fff;font-size:.75rem}
@@ -1093,6 +1109,7 @@ body.ag-ouvert{overflow:hidden}
     assistant: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v1M15 12v1M9.5 16h5"/>',
     atelier: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
     validations: '<path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
+    referentiels: '<path d="M4 5h6v14H4zM14 5h6v14h-6z"/><path d="M6.5 9h1M6.5 12h1M16.5 9h1M16.5 12h1"/>',
     lexique: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6M9 11h4"/>',
     roles: '<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.6-3.4 2.9-5.5 5.5-5.5s4.9 2.1 5.5 5.5M14 15.2c2.6-.6 5.3 1 6 4.8"/>'
   };
@@ -1125,6 +1142,7 @@ body.ag-ouvert{overflow:hidden}
     validations: { titre: 'Mes validations', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('validations'); } },
     roles:       { titre: 'Rôles de production', parent: 'm-groupes', ouvrir: function () { ouvrirAtelier('roles'); } },
     lexique:     { titre: 'Lexique des équivalences', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('lexique'); } },
+    referentiels: { titre: 'Référentiels RNCP et RS', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('referentiels'); } },
     assistant:   { titre: 'Assistant du cours', parent: 'm-modules', gestion: true,
                    ouvrir: function () { ouvrirOnglet('modules'); } }
   };
@@ -1165,6 +1183,7 @@ body.ag-ouvert{overflow:hidden}
         { ico: 'atelier', t: 'Atelier de questions', s: 'Rédiger, valider, signer et publier les questions', feuille: 'atelier' },
         { ico: 'validations', t: 'Mes validations', s: 'Questions qui attendent votre décision', feuille: 'validations' },
         { ico: 'lexique', t: 'Lexique des équivalences', s: 'Expressions acceptées comme équivalentes dans les rédactions', feuille: 'lexique' },
+        { ico: 'referentiels', t: 'Référentiels RNCP et RS', s: 'Blocs et compétences des certifications, à retenir pour une fiche programme', feuille: 'referentiels' },
         { ico: 'assistant', t: 'Assistant du cours', s: "Modules ouverts aux questions des stagiaires", feuille: 'assistant' }
       ] },
       'm-mes': { titre: 'Mes séances', parent: estGestionnaire ? 'accueil' : null, tuiles: [
@@ -1319,6 +1338,7 @@ body.ag-ouvert{overflow:hidden}
       AT.roles = r || [];
       if (mode === 'roles') return atRolesVue();
       if (mode === 'lexique') return atLexiqueVue();
+      if (mode === 'referentiels') return atReferentielsVue();
       if (mode === 'validations') return atValidations();
       return atAccueil();
     }).catch(function (e) { $('#at-contenu').innerHTML = ''; atMsg(e.message); });
@@ -2081,6 +2101,207 @@ body.ag-ouvert{overflow:hidden}
       });
     }
     charger();
+  }
+
+
+  /* --- Référentiels RNCP et RS (France compétences) ---
+   * Recherche dans les fiches chargées chaque semaine depuis l'export de France compétences,
+   * lecture d'une fiche, choix des blocs et compétences à couvrir, enregistrés comme « sélection »
+   * (point de départ d'une fiche programme). Fonctions lms.referentiel_*.
+   */
+  var RF = { onglet: 'chercher', criteres: { texte: '', rep: '', niv: '', inactives: false }, resultats: null, fiche: null, selection: null };
+  var RF_NIVEAUX = { NIV3: 'Niveau 3', NIV4: 'Niveau 4', NIV5: 'Niveau 5', NIV6: 'Niveau 6', NIV7: 'Niveau 7', NIV8: 'Niveau 8' };
+  function rfDate(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('fr-FR') : '—'; }
+  function rfTexte(t) { return echappe(t || '').replace(/\n/g, '<br>'); }
+  function rfCompetences(t) {
+    return String(t || '').replace(/&nbsp;/g, ' ').split(/\n/).map(function (l) { return l.replace(/^\s*[-•*–]\s*/, '').trim(); })
+      .filter(function (l) { return l.length > 2; });
+  }
+  function rfPeut() { return atA('auteur') || atA('pedagogique') || atA('direction'); }
+
+  function atReferentielsVue() {
+    $('#at-contenu').innerHTML = '<h2>Référentiels RNCP et RS</h2><p class="sub">Les fiches des certifications enregistrées par France compétences, ' +
+      'mises à jour chaque lundi depuis l’export officiel (data.gouv.fr). Cherchez un titre, lisez ses blocs de compétences, ' +
+      'puis cochez ce que la fiche programme doit couvrir et enregistrez votre sélection.</p>' + atBandeauRoles() +
+      (rfPeut() ? '<div class="rf-onglets"><button type="button" class="rf-onglet" data-onglet="chercher">Rechercher</button>' +
+        '<button type="button" class="rf-onglet" data-onglet="selections">Sélections enregistrées</button><span id="rf-etat" class="muted"></span></div>' +
+        '<div id="rf-corps"></div>'
+        : '<p class="muted">Les référentiels sont réservés aux rôles de production (auteur, service pédagogique, direction).</p>');
+    if (!rfPeut()) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.rf-onglet'), function (b) {
+      b.addEventListener('click', function () { RF.onglet = b.dataset.onglet; RF.fiche = null; rfAfficher(); });
+    });
+    appeler('lms', 'referentiel_etat', {}).then(function (e) {
+      var c = e && e.dernier_chargement;
+      $('#rf-etat').textContent = (e ? Number(e.actives).toLocaleString('fr-FR') + ' fiches actives' : '') +
+        (c && c.export_du ? ' · export du ' + rfDate(c.export_du) : '') + (c && c.statut === 'erreur' ? ' · dernier chargement en erreur' : '');
+    }).catch(function () {});
+    rfAfficher();
+  }
+
+  function rfAfficher() {
+    Array.prototype.forEach.call(document.querySelectorAll('.rf-onglet'), function (b) { b.classList.toggle('actif', b.dataset.onglet === RF.onglet && !RF.fiche); });
+    if (RF.fiche) return rfFiche();
+    if (RF.onglet === 'selections') return rfSelections();
+    var c = RF.criteres;
+    $('#rf-corps').innerHTML = '<form id="rf-form" class="rf-recherche">' +
+      '<input id="rf-texte" placeholder="Intitulé ou numéro (ex. relation client à distance, RNCP42431)" value="' + echappe(c.texte) + '">' +
+      '<select id="rf-rep"><option value="">RNCP et RS</option><option value="RNCP"' + (c.rep === 'RNCP' ? ' selected' : '') + '>RNCP</option>' +
+      '<option value="RS"' + (c.rep === 'RS' ? ' selected' : '') + '>RS</option></select>' +
+      '<select id="rf-niv"><option value="">Tous niveaux</option>' + Object.keys(RF_NIVEAUX).map(function (k) {
+        return '<option value="' + k + '"' + (c.niv === k ? ' selected' : '') + '>' + RF_NIVEAUX[k] + '</option>'; }).join('') + '</select>' +
+      '<label class="at-var"><input type="checkbox" id="rf-inactives"' + (c.inactives ? ' checked' : '') + '> fiches inactives aussi</label>' +
+      '<button class="btn">Chercher</button></form><div id="rf-resultats"></div>';
+    $('#rf-form').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      RF.criteres = { texte: $('#rf-texte').value.trim(), rep: $('#rf-rep').value, niv: $('#rf-niv').value, inactives: $('#rf-inactives').checked };
+      rfChercher();
+    });
+    if (RF.resultats) rfResultats(); else if (c.texte) rfChercher();
+    $('#rf-texte').focus();
+  }
+
+  function rfChercher() {
+    var c = RF.criteres;
+    if (!c.texte) { $('#rf-resultats').innerHTML = '<p class="muted">Tapez un intitulé, un mot-clé ou un numéro de fiche.</p>'; return; }
+    $('#rf-resultats').innerHTML = '<div class="chargement">Recherche…</div>';
+    appeler('lms', 'referentiel_chercher', { p_texte: c.texte, p_repertoire: c.rep || null, p_niveau: c.niv || null, p_actives: !c.inactives, p_limite: 100 })
+      .then(function (r) { RF.resultats = r || []; rfResultats(); })
+      .catch(function (e) { $('#rf-resultats').innerHTML = ''; atMsg(e.message); });
+  }
+
+  function rfResultats() {
+    var r = RF.resultats || [];
+    $('#rf-resultats').innerHTML = !r.length ? '<p class="muted">Aucune fiche ne correspond.</p>' :
+      '<p class="muted" style="font-size:.85rem">' + r.length + (r.length >= 100 ? ' premières fiches' : ' fiche(s)') + ' — cliquez sur une ligne pour l’ouvrir.</p>' +
+      '<table class="at-table"><thead><tr><th>Fiche</th><th>Intitulé</th><th>Niveau</th><th>Certificateur</th><th>Blocs</th><th>État</th></tr></thead><tbody>' +
+      r.map(function (f) {
+        return '<tr class="clic" data-num="' + echappe(f.numero) + '"><td style="white-space:nowrap">' + echappe(f.numero) + '</td><td><b>' + echappe(f.intitule) + '</b>' +
+          (f.abrege ? '<br><span class="muted">' + echappe(f.abrege) + '</span>' : '') + '</td><td>' + echappe(RF_NIVEAUX[f.niveau] || '—') + '</td>' +
+          '<td>' + echappe(f.certificateurs || '') + '</td><td>' + (f.repertoire === 'RS' ? '—' : f.nb_blocs) + '</td><td>' +
+          (f.actif ? '<span class="at-ctl ok">Active</span>' + (f.date_fin_enregistrement ? '<br><span class="muted">jusqu’au ' + rfDate(f.date_fin_enregistrement) + '</span>' : '')
+                   : '<span class="at-ctl ko">Inactive</span>' + (f.remplacee_par && f.remplacee_par.length ? '<br><span class="muted">remplacée par ' + f.remplacee_par.map(echappe).join(', ') + '</span>' : '')) +
+          '</td></tr>';
+      }).join('') + '</tbody></table>';
+    Array.prototype.forEach.call($('#rf-resultats').querySelectorAll('tr[data-num]'), function (tr) {
+      tr.addEventListener('click', function () { rfOuvrir(tr.dataset.num, null); });
+    });
+  }
+
+  function rfOuvrir(numero, selection) {
+    $('#rf-corps').innerHTML = '<div class="chargement">Chargement de la fiche…</div>';
+    appeler('lms', 'referentiel_fiche', { p_numero: numero }).then(function (f) {
+      RF.fiche = f; RF.selection = selection; rfAfficher(); window.scrollTo(0, 0);
+    }).catch(function (e) { $('#rf-corps').innerHTML = ''; atMsg(e.message); });
+  }
+
+  function rfFiche() {
+    var f = RF.fiche, sel = RF.selection, deja = {};
+    (sel ? sel.blocs : []).forEach(function (b) { deja[b.code || '_'] = b.competences || []; });
+    var blocs = (f.blocs || []).map(function (b) { return { code: b.code, libelle: b.libelle, comp: rfCompetences(b.liste_competences), modalites: b.modalites_evaluation }; });
+    if (!blocs.length && f.capacites_attestees) blocs = [{ code: null, libelle: 'Capacités attestées', comp: rfCompetences(f.capacites_attestees), modalites: null }];
+    function liste(v) { return (v || []).map(function (x) { return x.code ? echappe(x.code) + ' — ' + echappe(x.libelle) : echappe(x.nom || ''); }).join('<br>') || '—'; }
+    function section(titre, t) { return t ? '<details class="rf-section"><summary>' + titre + '</summary><div>' + rfTexte(t) + '</div></details>' : ''; }
+    var etat = f.actif ? '<span class="at-ctl ok">Active</span>' :
+      '<span class="at-ctl ko">Inactive</span>' + (f.nouvelles && f.nouvelles.length ? ' — remplacée par ' + f.nouvelles.map(function (n) {
+        return '<button type="button" class="ag-lien" data-ouvrir="' + echappe(n) + '">' + echappe(n) + '</button>'; }).join(', ') : '');
+    $('#rf-corps').innerHTML = '<p><button type="button" class="ag-lien" id="rf-retour">‹ Retour ' + (sel ? 'aux sélections' : 'aux résultats') + '</button></p>' +
+      '<h3 style="margin:.2rem 0">' + echappe(f.numero) + ' — ' + echappe(f.intitule) + '</h3>' +
+      '<table class="at-table rf-carte"><tbody>' +
+      '<tr><th>État</th><td>' + etat + '</td><th>Niveau</th><td>' + echappe(RF_NIVEAUX[f.niveau] || '—') + (f.abrege_libelle ? ' · ' + echappe(f.abrege_libelle) : '') + '</td></tr>' +
+      '<tr><th>Certificateur</th><td>' + liste(f.certificateurs) + '</td><th>Dates</th><td>Effet : ' + rfDate(f.date_effet) + '<br>Fin d’enregistrement : ' + rfDate(f.date_fin_enregistrement) +
+        (f.date_limite_delivrance ? '<br>Délivrance jusqu’au : ' + rfDate(f.date_limite_delivrance) : '') + '</td></tr>' +
+      '<tr><th>Voies d’accès</th><td>' + (f.voies_acces && f.voies_acces.length ? f.voies_acces.map(echappe).join(', ') : '—') + '</td><th>Codes ROME</th><td>' + liste(f.rome) + '</td></tr>' +
+      '<tr><th>Formacode</th><td>' + liste(f.formacodes) + '</td><th>NSF</th><td>' + liste(f.nsf) + '</td></tr>' +
+      '<tr><th>Source</th><td colspan="3"><a href="' + echappe(f.lien) + '" target="_blank" rel="noopener">Fiche sur le site de France compétences</a>' +
+        ' · <span class="muted">export du ' + rfDate(f.export_du) + '</span></td></tr></tbody></table>' +
+      section('Activités visées', f.activites_visees) + section('Capacités attestées', f.repertoire === 'RNCP' ? f.capacites_attestees : null) +
+      section('Objectifs et contexte', f.objectifs_contexte) + section('Prérequis d’entrée en formation', f.prerequis_entree) +
+      section('Prérequis de validation', f.prerequis_validation) + section('Types d’emplois accessibles', f.types_emploi) +
+      section('Secteurs d’activité', f.secteurs_activite) + section('Réglementation', f.reglementations) +
+      '<h3 style="margin:1rem 0 .3rem">' + (f.repertoire === 'RS' ? 'Compétences attestées' : 'Blocs de compétences') + '</h3>' +
+      (blocs.length ? '<p class="muted" style="font-size:.85rem">Cochez un bloc pour retenir toutes ses compétences, ou seulement certaines compétences.</p>' +
+        blocs.map(function (b, i) {
+          var pris = deja[b.code || '_'];
+          return '<div class="rf-bloc"><label class="rf-titre-bloc"><input type="checkbox" data-bloc="' + i + '"> <b>' + (b.code ? echappe(b.code) + ' — ' : '') + echappe(b.libelle) + '</b></label>' +
+            '<ul class="rf-comp">' + b.comp.map(function (c, j) {
+              return '<li><label><input type="checkbox" data-b="' + i + '" data-c="' + j + '"' + (pris && pris.indexOf(c) >= 0 ? ' checked' : '') + '> ' + echappe(c) + '</label></li>';
+            }).join('') + '</ul>' + (b.modalites ? '<details class="rf-section"><summary>Modalités d’évaluation</summary><div>' + rfTexte(b.modalites) + '</div></details>' : '') + '</div>';
+        }).join('') : '<p class="muted">Cette fiche ne détaille pas de compétences.</p>') +
+      (blocs.length ? '<div class="at-formule" style="margin-top:1rem"><b>' + (sel ? 'Modifier la sélection' : 'Enregistrer la sélection') + '</b>' +
+        '<div class="at-grille" style="margin-top:.5rem"><div><label for="rf-titre">Titre</label><input id="rf-titre" value="' + echappe(sel ? sel.titre : f.intitule) + '"></div>' +
+        '<div><label for="rf-note">Note (facultatif)</label><input id="rf-note" placeholder="Public, durée, contexte du client…" value="' + echappe(sel && sel.note || '') + '"></div></div>' +
+        '<p class="muted" id="rf-compte" style="font-size:.85rem"></p>' +
+        '<div class="at-boutons"><button class="btn" id="rf-enreg">Enregistrer</button><button class="btn btn-secondaire" id="rf-copier">Copier en texte</button></div></div>' : '');
+    $('#rf-retour').addEventListener('click', function () { RF.fiche = null; RF.selection = null; if (sel) RF.onglet = 'selections'; rfAfficher(); });
+    Array.prototype.forEach.call($('#rf-corps').querySelectorAll('[data-ouvrir]'), function (b) { b.addEventListener('click', function () { rfOuvrir(b.dataset.ouvrir, null); }); });
+    if (!blocs.length) return;
+    var zone = $('#rf-corps');
+    function choisis() {
+      return blocs.map(function (b, i) {
+        var comp = b.comp.filter(function (c, j) { var x = zone.querySelector('[data-b="' + i + '"][data-c="' + j + '"]'); return x && x.checked; });
+        return comp.length ? { code: b.code, libelle: b.libelle, competences: comp } : null;
+      }).filter(Boolean);
+    }
+    function maj() {
+      blocs.forEach(function (b, i) {
+        var cases = zone.querySelectorAll('[data-b="' + i + '"]'), n = 0;
+        Array.prototype.forEach.call(cases, function (x) { if (x.checked) n++; });
+        var tete = zone.querySelector('[data-bloc="' + i + '"]');
+        tete.checked = cases.length > 0 && n === cases.length; tete.indeterminate = n > 0 && n < cases.length;
+      });
+      var c = choisis(), nb = c.reduce(function (t, b) { return t + b.competences.length; }, 0);
+      $('#rf-compte').textContent = nb ? nb + ' compétence(s) retenue(s) dans ' + c.length + ' bloc(s).' : 'Aucune compétence cochée.';
+    }
+    zone.addEventListener('change', function (ev) {
+      var t = ev.target;
+      if (t.dataset && t.dataset.bloc !== undefined) Array.prototype.forEach.call(zone.querySelectorAll('[data-b="' + t.dataset.bloc + '"]'), function (x) { x.checked = t.checked; });
+      maj();
+    });
+    maj();
+    $('#rf-enreg').addEventListener('click', function () {
+      var b = this, c = choisis();
+      if (!c.length) { atMsg('Cochez au moins une compétence.'); return; }
+      b.disabled = true;
+      appeler('lms', 'referentiel_selection_enregistrer', { p_id: sel ? sel.id : null, p_titre: $('#rf-titre').value, p_numero: f.numero, p_blocs: c, p_note: $('#rf-note').value })
+        .then(function (id) { b.disabled = false; RF.selection = { id: id, titre: $('#rf-titre').value, note: $('#rf-note').value, blocs: c }; sel = RF.selection;
+          atMsg('Sélection enregistrée. Elle sert de point de départ à la fiche programme.', 'ok'); })
+        .catch(function (e) { b.disabled = false; atMsg(e.message); });
+    });
+    $('#rf-copier').addEventListener('click', function () {
+      var c = choisis();
+      var t = [$('#rf-titre').value, f.numero + ' — ' + f.intitule + (RF_NIVEAUX[f.niveau] ? ' (' + RF_NIVEAUX[f.niveau] + ')' : ''), ''].concat(
+        c.map(function (b) { return (b.code ? b.code + ' — ' : '') + b.libelle + '\n' + b.competences.map(function (x) { return '  - ' + x; }).join('\n'); }));
+      navigator.clipboard.writeText(t.join('\n')).then(function () { atMsg('Sélection copiée dans le presse-papiers.', 'ok'); },
+        function () { atMsg('Copie impossible dans ce navigateur.'); });
+    });
+  }
+
+  function rfSelections() {
+    $('#rf-corps').innerHTML = '<div class="chargement">Chargement…</div>';
+    appeler('lms', 'referentiel_selections_lister', {}).then(function (r) {
+      r = r || [];
+      $('#rf-corps').innerHTML = !r.length ? '<p class="muted">Aucune sélection enregistrée. Ouvrez une fiche dans « Rechercher » et cochez ses compétences.</p>' :
+        '<table class="at-table"><thead><tr><th>Sélection</th><th>Fiche</th><th>Contenu</th><th>Modifiée</th><th></th></tr></thead><tbody>' + r.map(function (s) {
+          var nb = (s.blocs || []).reduce(function (t, b) { return t + (b.competences || []).length; }, 0);
+          return '<tr><td><b>' + echappe(s.titre) + '</b>' + (s.note ? '<br><span class="muted">' + echappe(s.note) + '</span>' : '') + '</td>' +
+            '<td>' + echappe(s.numero) + '<br><span class="muted">' + echappe(s.intitule) + '</span>' +
+            (s.actif ? '' : '<br><span class="at-ctl ko">Fiche devenue inactive</span>' + (s.remplacee_par && s.remplacee_par.length ? ' — remplacée par ' + s.remplacee_par.map(echappe).join(', ') : '')) + '</td>' +
+            '<td>' + (s.blocs || []).length + ' bloc(s), ' + nb + ' compétence(s)</td>' +
+            '<td class="muted">' + new Date(s.modifie_le).toLocaleDateString('fr-FR') + (s.auteur ? ' · ' + echappe(s.auteur) : '') + '</td>' +
+            '<td style="white-space:nowrap"><button class="ag-lien" data-ouvrir="' + s.id + '">Ouvrir</button> <button class="ag-lien" data-suppr="' + s.id + '">Supprimer</button></td></tr>';
+        }).join('') + '</tbody></table>';
+      Array.prototype.forEach.call($('#rf-corps').querySelectorAll('[data-ouvrir]'), function (b) {
+        b.addEventListener('click', function () { var s = r.filter(function (x) { return String(x.id) === b.dataset.ouvrir; })[0]; rfOuvrir(s.numero, s); });
+      });
+      Array.prototype.forEach.call($('#rf-corps').querySelectorAll('[data-suppr]'), function (b) {
+        b.addEventListener('click', function () {
+          if (!confirm('Supprimer cette sélection ?')) return;
+          appeler('lms', 'referentiel_selection_supprimer', { p_id: +b.dataset.suppr }).then(function () { atMsg('Sélection supprimée.', 'ok'); rfSelections(); })
+            .catch(function (e) { atMsg(e.message); });
+        });
+      });
+    }).catch(function (e) { $('#rf-corps').innerHTML = ''; atMsg(e.message); });
   }
 
   /* --- Mes validations --- */
