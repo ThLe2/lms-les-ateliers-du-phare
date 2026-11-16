@@ -129,7 +129,9 @@ class Base:
         self.url, self.cle = url.rstrip("/"), cle
 
     def appel(self, methode, chemin, corps=None, prefer=None):
-        h = {"apikey": self.cle, "Authorization": f"Bearer {self.cle}", "Content-Type": "application/json"}
+        h = {"apikey": self.cle, "Content-Type": "application/json"}
+        if not self.cle.startswith("sb_"):   # ancienne clé service_role (jeton JWT) ; une clé « sb_secret_… » passe seule dans apikey
+            h["Authorization"] = f"Bearer {self.cle}"
         if prefer:
             h["Prefer"] = prefer
         data = None if corps is None else json.dumps(corps, ensure_ascii=False).encode()
