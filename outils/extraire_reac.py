@@ -39,8 +39,8 @@ def http(url, timeout=120):
 
 
 def norm(t):
-    t = unicodedata.normalize("NFD", t or "").encode("ascii", "ignore").decode().lower()
-    return re.sub(r"[^a-z0-9]+", " ", t.replace("’", "'")).strip()
+    t = unicodedata.normalize("NFD", (t or "").replace("’", "'")).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", " ", t).strip()
 
 
 def lien_document(numero):
